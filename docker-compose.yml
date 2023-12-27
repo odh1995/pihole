@@ -1,0 +1,40 @@
+version: "3"
+
+# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    networks: 
+      pihole_ipvlan:
+        ipv4_address: 192.168.2.251
+
+    ports:
+      - "443:443/tcp"
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "80:80/tcp"
+    environment:
+      ServerIP: 192.168.2.251
+      TZ: 'Asia/Singapore'
+      WEBPASSWORD: 'xxx'
+    # Volumes store your data between container upgrades
+    volumes:
+      - '/home/xxx/pihole/etc-pihole:/etc/pihole'
+      - '/home/xxx/pihole/etc-dnsmasq.d:/etc/dnsmasq.d'
+    #   https://github.com/pi-hole/docker-pi-hole#note-on-capabilities
+    cap_add:
+      - NET_ADMIN # Required if you are using Pi-hole as your DHCP server, else not needed
+    restart: unless-stopped
+networks:
+  pihole_ipvlan:
+    driver: macvlan 
+    driver_opts:
+      parent: eth0 
+      ipvlan_mode: l2
+    ipam:
+      config:
+        - subnet: 192.168.2.0/24  # Assuming a standard subnet mask
+          gateway: 192.168.2.1
+          ip_range: 192.168.2.251/32
+
